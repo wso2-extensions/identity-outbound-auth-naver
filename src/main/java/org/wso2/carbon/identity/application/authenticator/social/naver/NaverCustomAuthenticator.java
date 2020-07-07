@@ -309,39 +309,39 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 			String id = null, nickName = null, name = null, email = null, gender = null, age = null, birthDay = null,
 					profileImage = null;
 
-			if (userInfoJson.has("id"))
-				id = userInfoJson.getString("id");
+			if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_ID))
+				id = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_ID);
 
-			if (userInfoJson.has("nickname"))
-				nickName = userInfoJson.getString("nickname");
+			if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME))
+				nickName = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME);
 
-			if (userInfoJson.has("name"))
-				name = userInfoJson.getString("name");
+			if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_NAME))
+				name = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_NAME);
 
-			if (userInfoJson.has("email"))
-				email = userInfoJson.getString("email");
+			if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_EMAIL))
+				email = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_EMAIL);
 
-			if (userInfoJson.has("gender"))
-				gender = userInfoJson.getString("gender");
+			if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_GENDER))
+				gender = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_GENDER);
 
-			if (userInfoJson.has("age"))
-				age = userInfoJson.getString("age");
+			if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_AGE))
+				age = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_AGE);
 
-			if (userInfoJson.has("birthday"))
-				birthDay = userInfoJson.getString("birthday");
+			if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_BDAY))
+				birthDay = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_BDAY);
 
-			if (userInfoJson.has("profile_image"))
-				profileImage = userInfoJson.getString("profile_image");
+			if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_IMAGE))
+				profileImage = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_IMAGE);
 
 			claims = new HashMap<ClaimMapping, String>();
-			claims.put(ClaimMapping.build("id", "id", null, false), id);
-			claims.put(ClaimMapping.build("nickname", "nickname", null, false), nickName);
-			claims.put(ClaimMapping.build("name", "name", null, false), name);
-			claims.put(ClaimMapping.build("email", "email", null, false), email);
-			claims.put(ClaimMapping.build("gender", "gender", null, false), gender);
-			claims.put(ClaimMapping.build("age", "age", null, false), age);
-			claims.put(ClaimMapping.build("birthDay", "birthDay", null, false), birthDay);
-			claims.put(ClaimMapping.build("profileImage", "profileImage", null, false), profileImage);
+			claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_ID, NaverCustomAuthenticatorConstants.NV_USER_ID, null, false), id);
+			claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME, NaverCustomAuthenticatorConstants.NV_USER_NICKNAME, null, false), nickName);
+			claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_NAME, NaverCustomAuthenticatorConstants.NV_USER_NAME, null, false), name);
+			claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_EMAIL, NaverCustomAuthenticatorConstants.NV_USER_EMAIL, null, false), email);
+			claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_GENDER, NaverCustomAuthenticatorConstants.NV_USER_GENDER, null, false), gender);
+			claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_AGE, NaverCustomAuthenticatorConstants.NV_USER_AGE, null, false), age);
+			claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_BDAY, NaverCustomAuthenticatorConstants.NV_USER_BDAY, null, false), birthDay);
+			claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_IMAGE, NaverCustomAuthenticatorConstants.NV_USER_IMAGE, null, false), profileImage);
 
 			String subjectFromClaims = FrameworkUtils
 					.getFederatedSubjectFromClaims(context.getExternalIdP().getIdentityProvider(), claims);
