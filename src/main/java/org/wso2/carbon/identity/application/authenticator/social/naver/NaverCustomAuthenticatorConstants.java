@@ -21,8 +21,13 @@ public class NaverCustomAuthenticatorConstants {
 
 	public static final String CLIENT_ID = "ClientId";
     public static final String CLIENT_SECRET = "ClientSecret";
+    
     public static final String CALLBACK_URL = "CallbackUrl";
-    public static final String OAUTH2_GRANT_TYPE_CODE = "code";
-    public static final String LOGIN_TYPE = "naver";
+    public static final String NAVER_LOGIN_TYPE = "naver";
+	public static final String NAVER_PARAM_STATE = "state";
+	public static final String AUTHENTICATOR_NAME = "NAVER";
+	public static final String NAVER_GRANT_TYPE_CODE = "code";
     
 }
+
+																		

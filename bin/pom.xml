@@ -15,7 +15,6 @@
   specific language governing permissions and limitations
   under the License.
 -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -101,25 +100,45 @@
 	</pluginRepositories>
 	<dependencies>
 		<dependency>
+			<groupId>org.wso2.eclipse.osgi</groupId>
+			<artifactId>org.eclipse.osgi.services</artifactId>
+			<version>3.5.100.v20160504-1419</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.osgi</groupId>
+			<artifactId>org.eclipse.osgi</artifactId>
+			<version>3.9.1.v20130814-1242</version>
+		</dependency>
+		<dependency>
 			<groupId>org.wso2.carbon.identity.framework</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-			<version>${carbon.identity.framework.version}</version>
+			<version>5.17.5</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.wso2.eclipse.osgi</groupId>
+					<artifactId>org.eclipse.osgi.services</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.orbit.org.apache.oltu.oauth2</groupId>
-			<artifactId>oltu</artifactId>
-			<version>${oltu.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.scr.ds-annotations</artifactId>
-			<scope>provided</scope>
-			<version>${apache.felix.scr.ds.annotations.version}</version>
-		</dependency>
+            <groupId>org.wso2.orbit.org.apache.oltu.oauth2</groupId>
+            <artifactId>oltu</artifactId>
+            <version>1.0.0.wso2v3</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<plugins>
-		<plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.1</version>
+				<inherited>true</inherited>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<extensions>true</extensions>
@@ -131,57 +150,19 @@
 						<Private-Package>
 							org.wso2.carbon.identity.application.authenticator.social.naver.internal
 						</Private-Package>
-						<Import-Package>
-						 javax.servlet.http;version="${javax.servlet.version.range}",
-							org.apache.commons.lang;version="${apache.commons.version.range}",
-							org.apache.commons.logging;version="${apache.commons.logging.version.range}",
-							org.apache.oltu.oauth2.client.request;version="${oltu.version.range}",
-							org.apache.oltu.oauth2.client.response;version="${oltu.version.range}",
-							org.apache.oltu.oauth2.common.exception;version="${oltu.version.range}",
-							org.apache.oltu.oauth2.common.message.types;version="${oltu.version.range}",
-							org.apache.oltu.oauth2.common.utils;version="${oltu.version.range}",
-							org.json;version="${json.version.range}",
-							org.osgi.framework;version="${osgi.framework.version.range}",
-							org.osgi.service.component;version="${osgi.service.component.imp.pkg.version.range}",
-							org.wso2.carbon.identity.application.authentication.framework.*;version="${identity.framework.package.import.version.range}",
-							org.wso2.carbon.identity.application.common.model;version="${identity.framework.package.import.version.range}",
-							org.wso2.carbon.identity.core.util;version="${identity.framework.package.import.version.range}"
-						</Import-Package>
+						<Import-Package>*</Import-Package>
 						<Export-Package>
 							!org.wso2.carbon.identity.application.authenticator.social.naver.internal,
 							org.wso2.carbon.identity.application.authenticator.social.naver.*;
-							version="1.0.0-SNAPSHOT",
+							version="0.0.1-SNAPSHOT",
 						</Export-Package>
 						<DynamicImport-Package>*</DynamicImport-Package>
 					</instructions>
 				</configuration>
 			</plugin>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.1</version>
-				<inherited>true</inherited>
-				<configuration>
-					<encoding>UTF-8</encoding>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-			
 		</plugins>
 	</build>
 	<properties>
-	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<oltu.version>1.0.0.wso2v3</oltu.version>
-		<carbon.identity.framework.version>5.17.5</carbon.identity.framework.version>
-		<apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
-		<osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
-		<identity.framework.package.import.version.range>[5.14.0, 6.0.0)</identity.framework.package.import.version.range>
-		<oauth2.generic.version.range>[0.0,1)</oauth2.generic.version.range>
-		<oltu.version.range>[1.0,2)</oltu.version.range>
-		<apache.commons.version.range>[2.6,3)</apache.commons.version.range>
-		<javax.servlet.version.range>[2.6,3)</javax.servlet.version.range>
-		<apache.commons.logging.version.range>[1.2,2)</apache.commons.logging.version.range>
-		<osgi.framework.version.range>[1.8,2)</osgi.framework.version.range>
-		<json.version.range>[3.0,4)</json.version.range>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 </project>

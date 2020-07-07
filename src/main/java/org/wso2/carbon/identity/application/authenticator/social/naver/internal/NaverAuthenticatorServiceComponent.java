@@ -28,32 +28,32 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authenticator.social.naver.NaverCustomAuthenticator;
 
-@Component(name = "NaverAuthenticatorServiceComponent",
-immediate = true)
-public class NaverAuthenticatorServiceComponent{
+@Component(name = "NaverAuthenticatorServiceComponent", immediate = true)
+public class NaverAuthenticatorServiceComponent {
 
 	private static final Log logger = LogFactory.getLog(NaverAuthenticatorServiceComponent.class);
 
 	@Activate
- protected void activate(ComponentContext ctxt) {
-        try {
-        	NaverCustomAuthenticator naverAuthenticator = new NaverCustomAuthenticator();
-            Hashtable<String, String> props = new Hashtable<String, String>();
-            ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),naverAuthenticator, props);
-            if (logger.isDebugEnabled()) {
-            logger.debug("----Naver Authenticator bundle is activated----");
-            }
-  
-        } catch (Throwable e) {
-            logger.fatal("----Error while activating Naver authenticator----", e);
-        }
-    }
-  
+	protected void activate(ComponentContext ctxt) {
+		try {
+			NaverCustomAuthenticator naverAuthenticator = new NaverCustomAuthenticator();
+			Hashtable<String, String> props = new Hashtable<String, String>();
+			ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(), naverAuthenticator,
+					props);
+			if (logger.isDebugEnabled()) {
+				logger.debug("----Naver Authenticator bundle is activated----");
+			}
+
+		} catch (Throwable e) {
+			logger.fatal("----Error while activating Naver authenticator----", e);
+		}
+	}
+
 	@Deactivate
 	protected void deactivate(ComponentContext ctxt) {
 		if (logger.isDebugEnabled()) {
-        logger.debug("----Naver Authenticator bundle is deactivated----");
+			logger.debug("----Naver Authenticator bundle is deactivated----");
 		}
-    }
+	}
 
 }

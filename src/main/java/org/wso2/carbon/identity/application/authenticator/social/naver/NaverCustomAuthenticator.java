@@ -61,12 +61,12 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 
 	private static final long serialVersionUID = 8654763286341993633L;
 	private static final Log logger = LogFactory.getLog(NaverCustomAuthenticator.class);
-
 	private String stateToken;
 
 	@Override
 	protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationContext context) throws AuthenticationFailedException {
+		
 		if (logger.isDebugEnabled()) {
 			logger.debug("initiateAuthenticationRequest");
 		}
@@ -79,11 +79,11 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 			String clientId = authenticatorProperties.get(NaverCustomAuthenticatorConstants.CLIENT_ID);
 			String authorizationEP = getAuthorizationServerEndpoint();
 			String callbackUrl = authenticatorProperties.get(NaverCustomAuthenticatorConstants.CALLBACK_URL);
-
 			context.setContextIdentifier(stateToken);
-
+			String state = stateToken + "," + NaverCustomAuthenticatorConstants.NAVER_LOGIN_TYPE;
+			
 			OAuthClientRequest authzRequest = OAuthClientRequest.authorizationLocation(authorizationEP)
-					.setClientId(clientId).setResponseType("code").setRedirectURI(callbackUrl).setState(stateToken)
+					.setClientId(clientId).setResponseType("code").setRedirectURI(callbackUrl).setState(state)
 					.buildQueryMessage();
 
 			if (logger.isDebugEnabled()) {
@@ -112,8 +112,6 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 		logger.trace("InNaverebookAuthenticator.authenticate()");
 
 		try {
-			if (validateStatusToken(request)) {
-
 				Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
 				String clientId = authenticatorProperties.get(NaverCustomAuthenticatorConstants.CLIENT_ID);
 				String clientSecret = authenticatorProperties.get(NaverCustomAuthenticatorConstants.CLIENT_SECRET);
@@ -134,10 +132,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 				JSONObject userInfoJson = new JSONObject(responseBody);
 				buildClaims(context, userInfoJson.optJSONObject("response"));
 
-			} else {
-				logger.error("State token validation failed");
-				throw new AuthenticationFailedException("State token validation failed");
-			}
+			
 		} catch (ApplicationAuthenticatorException e) {
 			logger.error("Failed to process Naver Connect response.", e);
 			throw new AuthenticationFailedException(e.getMessage(), e);
@@ -145,7 +140,167 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 
 	}
 
-	private void buildClaims(AuthenticationContext context, JSONObject userInfoJson)
+	protected String getToken(String tokenEndPoint, String clientId, String clientSecret, String code)
+			throws ApplicationAuthenticatorException {
+
+		OAuthClientRequest tokenRequest = null;
+		String token = null;
+		String tokenResponseStr = null;
+		try {
+			String state = this.stateToken;
+			tokenRequest = buidTokenRequest(tokenEndPoint, clientId, clientSecret, state, code);
+			tokenResponseStr = sendRequest(tokenRequest.getLocationUri());
+			JSONObject tokenResponse = new JSONObject(tokenResponseStr);
+			token = tokenResponse.getString("access_token");
+
+			if (token.startsWith("{")) {
+				throw new ApplicationAuthenticatorException("Received access token is invalid.");
+			}
+		} catch (MalformedURLException e) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("URL : " + tokenRequest.getLocationUri());
+			}
+			throw new ApplicationAuthenticatorException("MalformedURLException while sending access token request.", e);
+		} catch (IOException e) {
+			throw new ApplicationAuthenticatorException("IOException while sending access token request.", e);
+		}
+		return token;
+	}
+
+	protected String getAuthorizationCode(HttpServletRequest request) throws ApplicationAuthenticatorException {
+		OAuthAuthzResponse authzResponse;
+		try {
+			authzResponse = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
+			return authzResponse.getCode();
+		} catch (OAuthProblemException e) {
+			throw new ApplicationAuthenticatorException("Exception while reading authorization code.", e);
+		}
+	}
+
+	protected String sendRequest(String url) throws IOException {
+		BufferedReader bufferReader = null;
+		StringBuilder stringBuilder = new StringBuilder();
+
+		try {
+			URLConnection urlConnection = new URL(url).openConnection();
+			bufferReader = new BufferedReader(
+					new InputStreamReader(urlConnection.getInputStream(), Charset.forName("utf-8")));
+
+			String inputLine = bufferReader.readLine();
+			while (inputLine != null) {
+				stringBuilder.append(inputLine).append("\n");
+				inputLine = bufferReader.readLine();
+			}
+		} finally {
+			IdentityIOStreamUtils.closeReader(bufferReader);
+		}
+
+		return stringBuilder.toString();
+	}
+
+	protected OAuthClientRequest buidTokenRequest(String tokenEndPoint, String clientId, String clientSecret,
+			String state, String code) throws ApplicationAuthenticatorException {
+		OAuthClientRequest tokenRequest = null;
+		try {
+			tokenRequest = OAuthClientRequest.tokenLocation(tokenEndPoint).setClientId(clientId)
+					.setClientSecret(clientSecret).setGrantType(GrantType.AUTHORIZATION_CODE).setCode(code)
+					.setParameter("state", state).buildQueryMessage();
+		} catch (OAuthSystemException e) {
+			throw new ApplicationAuthenticatorException("Exception while building access token request.", e);
+		}
+		return tokenRequest;
+	}
+
+	@Override
+	public boolean canHandle(HttpServletRequest request) {
+		if (isOauthStateParamExists(request) && (isOauth2CodeParamExists(request))) {
+			return true;
+		}
+		return false;
+	}
+	
+	protected static String getUserInfo(String apiUrl, Map<String, String> requestHeaders) {
+		HttpURLConnection con = connect(apiUrl);
+		try {
+			con.setRequestMethod("GET");
+			for (Map.Entry<String, String> header : requestHeaders.entrySet()) {
+				con.setRequestProperty(header.getKey(), header.getValue());
+			}
+
+			int responseCode = con.getResponseCode();
+			if (responseCode == HttpURLConnection.HTTP_OK) {
+				return readBody(con.getInputStream());
+			} else {
+				return readBody(con.getErrorStream());
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("API Invoke failed", e);
+		} finally {
+			con.disconnect();
+		}
+	}
+
+	protected static HttpURLConnection connect(String apiUrl) {
+		try {
+			URL url = new URL(apiUrl);
+			return (HttpURLConnection) url.openConnection();
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("API URL is Invalid. : " + apiUrl, e);
+		} catch (IOException e) {
+			throw new RuntimeException("Connection failed. : " + apiUrl, e);
+		}
+	}
+
+	protected static String readBody(InputStream body) {
+		InputStreamReader streamReader = new InputStreamReader(body);
+
+		try (BufferedReader lineReader = new BufferedReader(streamReader)) {
+			StringBuilder responseBody = new StringBuilder();
+
+			String line;
+			while ((line = lineReader.readLine()) != null) {
+				responseBody.append(line);
+			}
+
+			return responseBody.toString();
+		} catch (IOException e) {
+			throw new RuntimeException("API Failed to read response.", e);
+		}
+	}
+	
+	@Override
+	public String getContextIdentifier(HttpServletRequest request) {
+		String state = null;
+		try {
+			state = OAuthAuthzResponse.oauthCodeAuthzResponse(request).getState();
+			return state.split(",")[0];
+
+		} catch (OAuthProblemException e1) {
+			logger.error("No context");
+			e1.printStackTrace();
+		}
+		return state;
+	}
+	
+	protected boolean isOauth2CodeParamExists(HttpServletRequest request) {
+		return request.getParameter(NaverCustomAuthenticatorConstants.NAVER_GRANT_TYPE_CODE) != null;
+	}
+
+	protected boolean isOauthStateParamExists(HttpServletRequest request) {
+		return request.getParameter(NaverCustomAuthenticatorConstants.NAVER_PARAM_STATE) != null
+				&& NaverCustomAuthenticatorConstants.NAVER_LOGIN_TYPE.equals(getLoginType(request));
+	}
+
+	protected String getLoginType(HttpServletRequest request) {
+		String state = request.getParameter(NaverCustomAuthenticatorConstants.NAVER_PARAM_STATE);
+		if (StringUtils.isNotBlank(state) && state.split(",").length > 1) {
+			return state.split(",")[1];
+		} else {
+			return null;
+		}
+	}
+
+	protected void buildClaims(AuthenticationContext context, JSONObject userInfoJson)
 			throws ApplicationAuthenticatorException {
 
 		Map<ClaimMapping, String> claims;
@@ -215,90 +370,20 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 
 	}
 
-	private String getToken(String tokenEndPoint, String clientId, String clientSecret, String code)
-			throws ApplicationAuthenticatorException {
-
-		OAuthClientRequest tokenRequest = null;
-		String token = null;
-		String tokenResponseStr = null;
-		try {
-			String state = this.stateToken;
-			tokenRequest = buidTokenRequest(tokenEndPoint, clientId, clientSecret, state, code);
-			tokenResponseStr = sendRequest(tokenRequest.getLocationUri());
-			JSONObject tokenResponse = new JSONObject(tokenResponseStr);
-			token = tokenResponse.getString("access_token");
-
-			if (token.startsWith("{")) {
-				throw new ApplicationAuthenticatorException("Received access token is invalid.");
-			}
-		} catch (MalformedURLException e) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("URL : " + tokenRequest.getLocationUri());
-			}
-			throw new ApplicationAuthenticatorException("MalformedURLException while sending access token request.", e);
-		} catch (IOException e) {
-			throw new ApplicationAuthenticatorException("IOException while sending access token request.", e);
-		}
-		return token;
+	protected String generateState() {
+		SecureRandom random = new SecureRandom();
+		return new BigInteger(130, random).toString(32);
 	}
 
-	private String getAuthorizationCode(HttpServletRequest request) throws ApplicationAuthenticatorException {
-		OAuthAuthzResponse authzResponse;
-		try {
-			authzResponse = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
-			return authzResponse.getCode();
-		} catch (OAuthProblemException e) {
-			throw new ApplicationAuthenticatorException("Exception while reading authorization code.", e);
-		}
+	@Override
+	public String getFriendlyName() {
+		return "NAVER";
 	}
 
-	private String sendRequest(String url) throws IOException {
-		BufferedReader bufferReader = null;
-		StringBuilder stringBuilder = new StringBuilder();
-
-		try {
-			URLConnection urlConnection = new URL(url).openConnection();
-			bufferReader = new BufferedReader(
-					new InputStreamReader(urlConnection.getInputStream(), Charset.forName("utf-8")));
-
-			String inputLine = bufferReader.readLine();
-			while (inputLine != null) {
-				stringBuilder.append(inputLine).append("\n");
-				inputLine = bufferReader.readLine();
-			}
-		} finally {
-			IdentityIOStreamUtils.closeReader(bufferReader);
-		}
-
-		return stringBuilder.toString();
-	}
-
-	private OAuthClientRequest buidTokenRequest(String tokenEndPoint, String clientId, String clientSecret,
-			String state, String code) throws ApplicationAuthenticatorException {
-		OAuthClientRequest tokenRequest = null;
-		try {
-			tokenRequest = OAuthClientRequest.tokenLocation(tokenEndPoint).setClientId(clientId)
-					.setClientSecret(clientSecret).setGrantType(GrantType.AUTHORIZATION_CODE).setCode(code)
-					.setParameter("state", state).buildQueryMessage();
-		} catch (OAuthSystemException e) {
-			throw new ApplicationAuthenticatorException("Exception while building access token request.", e);
-		}
-		return tokenRequest;
-	}
-
-	private boolean validateStatusToken(HttpServletRequest request) throws ApplicationAuthenticatorException {
-		OAuthAuthzResponse authzResponse;
-		try {
-			authzResponse = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
-			String receivedStateCode = authzResponse.getState();
-			String sentStateCode = this.stateToken;
-			if (receivedStateCode.equals(sentStateCode)) {
-				return true;
-			}
-			return false;
-		} catch (OAuthProblemException e) {
-			throw new ApplicationAuthenticatorException("Exception while reading authorization status.", e);
-		}
+	@Override
+	public String getName() {
+		return NaverCustomAuthenticatorConstants.AUTHENTICATOR_NAME;
+		
 	}
 
 	@Override
@@ -331,101 +416,15 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 		return configProperties;
 	}
 
-	private static String getUserInfo(String apiUrl, Map<String, String> requestHeaders) {
-		HttpURLConnection con = connect(apiUrl);
-		try {
-			con.setRequestMethod("GET");
-			for (Map.Entry<String, String> header : requestHeaders.entrySet()) {
-				con.setRequestProperty(header.getKey(), header.getValue());
-			}
-
-			int responseCode = con.getResponseCode();
-			if (responseCode == HttpURLConnection.HTTP_OK) {
-				return readBody(con.getInputStream());
-			} else {
-				return readBody(con.getErrorStream());
-			}
-		} catch (IOException e) {
-			throw new RuntimeException("API Invoke failed", e);
-		} finally {
-			con.disconnect();
-		}
-	}
-
-	private static HttpURLConnection connect(String apiUrl) {
-		try {
-			URL url = new URL(apiUrl);
-			return (HttpURLConnection) url.openConnection();
-		} catch (MalformedURLException e) {
-			throw new RuntimeException("API URL is Invalid. : " + apiUrl, e);
-		} catch (IOException e) {
-			throw new RuntimeException("Connection failed. : " + apiUrl, e);
-		}
-	}
-
-	private static String readBody(InputStream body) {
-		InputStreamReader streamReader = new InputStreamReader(body);
-
-		try (BufferedReader lineReader = new BufferedReader(streamReader)) {
-			StringBuilder responseBody = new StringBuilder();
-
-			String line;
-			while ((line = lineReader.readLine()) != null) {
-				responseBody.append(line);
-			}
-
-			return responseBody.toString();
-		} catch (IOException e) {
-			throw new RuntimeException("API Failed to read response.", e);
-		}
-	}
-
-	@Override
-	public boolean canHandle(HttpServletRequest request) {
-		if (request.getParameter(NaverCustomAuthenticatorConstants.OAUTH2_GRANT_TYPE_CODE) != null) {
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public String getContextIdentifier(HttpServletRequest request) {
-		OAuthAuthzResponse authzResponse;
-		try {
-			authzResponse = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
-			String receivedStateCode = authzResponse.getState();
-			return receivedStateCode;
-		} catch (OAuthProblemException e) {
-			logger.error("No context");
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	public String generateState() {
-		SecureRandom random = new SecureRandom();
-		return new BigInteger(130, random).toString(32);
-	}
-
-	@Override
-	public String getFriendlyName() {
-		return "NAVER";
-	}
-
-	@Override
-	public String getName() {
-		return "NAVER";
-	}
-
-	private String getAuthorizationServerEndpoint() {
+	protected String getAuthorizationServerEndpoint() {
 		return "https://nid.naver.com/oauth2.0/authorize";
 	}
 
-	private String getUserInfoEndpoint() {
+	protected String getUserInfoEndpoint() {
 		return "https://openapi.naver.com/v1/nid/me";
 	}
 
-	private String getTokenEndpoint() {
+	protected String getTokenEndpoint() {
 		return "https://nid.naver.com/oauth2.0/token";
 	}
 
