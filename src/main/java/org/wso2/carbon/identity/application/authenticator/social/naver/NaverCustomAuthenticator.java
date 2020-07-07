@@ -219,7 +219,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 		return false;
 	}
 	
-	protected static String getUserInfo(String apiUrl, Map<String, String> requestHeaders) {
+	protected String getUserInfo(String apiUrl, Map<String, String> requestHeaders) {
 		HttpURLConnection con = connect(apiUrl);
 		try {
 			con.setRequestMethod("GET");
@@ -240,7 +240,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 		}
 	}
 
-	protected static HttpURLConnection connect(String apiUrl) {
+	protected HttpURLConnection connect(String apiUrl) {
 		try {
 			URL url = new URL(apiUrl);
 			return (HttpURLConnection) url.openConnection();
@@ -251,7 +251,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 		}
 	}
 
-	protected static String readBody(InputStream body) {
+	protected String readBody(InputStream body) {
 		InputStreamReader streamReader = new InputStreamReader(body);
 
 		try (BufferedReader lineReader = new BufferedReader(streamReader)) {
