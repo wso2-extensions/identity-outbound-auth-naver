@@ -1,19 +1,20 @@
 /*******************************************************************************
- * Copyright 2015 WSO2 Inc. (http://wso2.org)
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * 
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
- *   
- *  http://www.apache.org/licenses/LICENSE-2.0
- *   
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  ******************************************************************************/
-
 package org.wso2.carbon.identity.application.authenticator.social.naver;
 
 import java.io.BufferedReader;
@@ -31,8 +32,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,9 +45,9 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.json.JSONObject;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthenticatorException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -64,7 +67,9 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 	@Override
 	protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationContext context) throws AuthenticationFailedException {
-		logger.info("initiateAuthenticationRequest");
+		if (logger.isDebugEnabled()) {
+			logger.debug("initiateAuthenticationRequest");
+		}
 
 		String stateToken = generateState();
 		this.stateToken = stateToken;
@@ -81,11 +86,12 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 					.setClientId(clientId).setResponseType("code").setRedirectURI(callbackUrl).setState(stateToken)
 					.buildQueryMessage();
 
-			logger.info("authzRequest");
-			logger.info(authzRequest.getLocationUri());
-
+			if (logger.isDebugEnabled()) {
+				logger.debug("authzRequest");
+				logger.debug(authzRequest.getLocationUri());
+			}
 			response.sendRedirect(authzRequest.getLocationUri());
-			logger.info("success");
+
 		} catch (IOException e) {
 			logger.error("Exception while sending to the login page.", e);
 			throw new AuthenticationFailedException(e.getMessage(), e);
@@ -100,7 +106,9 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 	protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationContext context) throws AuthenticationFailedException {
 
-		logger.info("processAuthenticationResponse");
+		if (logger.isDebugEnabled()) {
+			logger.debug("processAuthenticationResponse");
+		}
 		logger.trace("InNaverebookAuthenticator.authenticate()");
 
 		try {
@@ -115,19 +123,20 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 				String token = getToken(tokenEndPoint, clientId, clientSecret, code);
 				String nvauthUserInfoUrl = getUserInfoEndpoint();
 
-				logger.debug("code >>>>>>> " + code);
-				logger.debug("token >>>>>>> " + token);
-
 				Map<String, String> requestHeaders = new HashMap<>();
 				requestHeaders.put("Authorization", "Bearer " + token);
 				String responseBody = getUserInfo(nvauthUserInfoUrl, requestHeaders);
-				logger.info(responseBody);
+
+				if (logger.isDebugEnabled()) {
+					logger.debug("Get user info response : " + responseBody);
+				}
 
 				JSONObject userInfoJson = new JSONObject(responseBody);
 				buildClaims(context, userInfoJson.optJSONObject("response"));
 
 			} else {
 				logger.error("State token validation failed");
+				throw new AuthenticationFailedException("State token validation failed");
 			}
 		} catch (ApplicationAuthenticatorException e) {
 			logger.error("Failed to process Naver Connect response.", e);
@@ -138,13 +147,13 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 
 	private void buildClaims(AuthenticationContext context, JSONObject userInfoJson)
 			throws ApplicationAuthenticatorException {
-		
+
 		Map<ClaimMapping, String> claims;
 
 		if (userInfoJson != null) {
 			String id = null, nickName = null, name = null, email = null, gender = null, age = null, birthDay = null,
 					profileImage = null;
-			
+
 			if (userInfoJson.has("id"))
 				id = userInfoJson.getString("id");
 
@@ -180,23 +189,22 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 			claims.put(ClaimMapping.build("profileImage", "profileImage", null, false), profileImage);
 
 			String subjectFromClaims = FrameworkUtils
-						.getFederatedSubjectFromClaims(context.getExternalIdP().getIdentityProvider(), claims);
-			
-				if (StringUtils.isNotBlank(subjectFromClaims)) {
+					.getFederatedSubjectFromClaims(context.getExternalIdP().getIdentityProvider(), claims);
+
+			if (StringUtils.isNotBlank(subjectFromClaims)) {
+				AuthenticatedUser authenticatedUser = AuthenticatedUser
+						.createFederateAuthenticatedUserFromSubjectIdentifier(subjectFromClaims);
+				context.setSubject(authenticatedUser);
+			} else {
+				if (!StringUtils.isEmpty(userInfoJson.getString("id"))) {
 					AuthenticatedUser authenticatedUser = AuthenticatedUser
-							.createFederateAuthenticatedUserFromSubjectIdentifier(subjectFromClaims);
+							.createFederateAuthenticatedUserFromSubjectIdentifier(id);
 					context.setSubject(authenticatedUser);
 				} else {
-					if (!StringUtils.isEmpty(userInfoJson.getString("id"))) {
-						AuthenticatedUser authenticatedUser = AuthenticatedUser
-								.createFederateAuthenticatedUserFromSubjectIdentifier(id);
-						context.setSubject(authenticatedUser);
-					} else {
-						throw new ApplicationAuthenticatorException("Authenticated user identifier is empty");
-					}
+					throw new ApplicationAuthenticatorException("Authenticated user identifier is empty");
 				}
-				context.getSubject().setUserAttributes(claims);
-			
+			}
+			context.getSubject().setUserAttributes(claims);
 
 		} else {
 			if (logger.isDebugEnabled()) {
@@ -209,7 +217,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 
 	private String getToken(String tokenEndPoint, String clientId, String clientSecret, String code)
 			throws ApplicationAuthenticatorException {
-		logger.info("getToken");
+
 		OAuthClientRequest tokenRequest = null;
 		String token = null;
 		String tokenResponseStr = null;
@@ -235,7 +243,6 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 	}
 
 	private String getAuthorizationCode(HttpServletRequest request) throws ApplicationAuthenticatorException {
-		logger.info("getAuthorizationCode");
 		OAuthAuthzResponse authzResponse;
 		try {
 			authzResponse = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
@@ -246,29 +253,28 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 	}
 
 	private String sendRequest(String url) throws IOException {
-		logger.info("sendRequest");
-		BufferedReader in = null;
-		StringBuilder b = new StringBuilder();
+		BufferedReader bufferReader = null;
+		StringBuilder stringBuilder = new StringBuilder();
 
 		try {
 			URLConnection urlConnection = new URL(url).openConnection();
-			in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), Charset.forName("utf-8")));
+			bufferReader = new BufferedReader(
+					new InputStreamReader(urlConnection.getInputStream(), Charset.forName("utf-8")));
 
-			String inputLine = in.readLine();
+			String inputLine = bufferReader.readLine();
 			while (inputLine != null) {
-				b.append(inputLine).append("\n");
-				inputLine = in.readLine();
+				stringBuilder.append(inputLine).append("\n");
+				inputLine = bufferReader.readLine();
 			}
 		} finally {
-			IdentityIOStreamUtils.closeReader(in);
+			IdentityIOStreamUtils.closeReader(bufferReader);
 		}
 
-		return b.toString();
+		return stringBuilder.toString();
 	}
 
 	private OAuthClientRequest buidTokenRequest(String tokenEndPoint, String clientId, String clientSecret,
 			String state, String code) throws ApplicationAuthenticatorException {
-		logger.info("buidTokenRequest");
 		OAuthClientRequest tokenRequest = null;
 		try {
 			tokenRequest = OAuthClientRequest.tokenLocation(tokenEndPoint).setClientId(clientId)
@@ -297,7 +303,6 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 
 	@Override
 	public List<Property> getConfigurationProperties() {
-		logger.info("getConfigurationProperties");
 		List<Property> configProperties = new ArrayList<Property>();
 
 		Property clientId = new Property();
@@ -327,7 +332,6 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 	}
 
 	private static String getUserInfo(String apiUrl, Map<String, String> requestHeaders) {
-		logger.debug("inside get user info");
 		HttpURLConnection con = connect(apiUrl);
 		try {
 			con.setRequestMethod("GET");
@@ -360,7 +364,6 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 	}
 
 	private static String readBody(InputStream body) {
-		logger.debug("inside readbody");
 		InputStreamReader streamReader = new InputStreamReader(body);
 
 		try (BufferedReader lineReader = new BufferedReader(streamReader)) {
@@ -379,16 +382,14 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 
 	@Override
 	public boolean canHandle(HttpServletRequest request) {
-		logger.debug("inside canHandle");
 		if (request.getParameter(NaverCustomAuthenticatorConstants.OAUTH2_GRANT_TYPE_CODE) != null) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	@Override
 	public String getContextIdentifier(HttpServletRequest request) {
-		logger.debug("inside getContextIdentifier");
 		OAuthAuthzResponse authzResponse;
 		try {
 			authzResponse = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
@@ -400,7 +401,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 			return null;
 		}
 	}
-	
+
 	public String generateState() {
 		SecureRandom random = new SecureRandom();
 		return new BigInteger(130, random).toString(32);
@@ -408,20 +409,18 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 
 	@Override
 	public String getFriendlyName() {
-		logger.debug("inside getFriendlyName");
 		return "NAVER";
 	}
 
 	@Override
 	public String getName() {
-		logger.debug("inside getName");
 		return "NAVER";
 	}
 
 	private String getAuthorizationServerEndpoint() {
 		return "https://nid.naver.com/oauth2.0/authorize";
 	}
-	
+
 	private String getUserInfoEndpoint() {
 		return "https://openapi.naver.com/v1/nid/me";
 	}
