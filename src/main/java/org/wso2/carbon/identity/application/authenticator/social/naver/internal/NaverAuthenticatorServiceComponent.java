@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- * 
+ *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -31,29 +31,31 @@ import org.wso2.carbon.identity.application.authenticator.social.naver.NaverCust
 @Component(name = "NaverAuthenticatorServiceComponent", immediate = true)
 public class NaverAuthenticatorServiceComponent {
 
-	private static final Log logger = LogFactory.getLog(NaverAuthenticatorServiceComponent.class);
+    private static final Log logger = LogFactory.getLog(NaverAuthenticatorServiceComponent.class);
 
-	@Activate
-	protected void activate(ComponentContext ctxt) {
-		try {
-			NaverCustomAuthenticator naverAuthenticator = new NaverCustomAuthenticator();
-			Hashtable<String, String> props = new Hashtable<String, String>();
-			ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(), naverAuthenticator,
-					props);
-			if (logger.isDebugEnabled()) {
-				logger.debug("----Naver Authenticator bundle is activated----");
-			}
+    @Activate
+    protected void activate(ComponentContext ctxt) {
 
-		} catch (Throwable e) {
-			logger.fatal("----Error while activating Naver authenticator----", e);
-		}
-	}
+        try {
+            NaverCustomAuthenticator naverAuthenticator = new NaverCustomAuthenticator();
+            Hashtable<String, String> props = new Hashtable<String, String>();
+            ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(), naverAuthenticator,
+                    props);
+            if (logger.isDebugEnabled()) {
+                logger.debug("----Naver Authenticator bundle is activated----");
+            }
 
-	@Deactivate
-	protected void deactivate(ComponentContext ctxt) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("----Naver Authenticator bundle is deactivated----");
-		}
-	}
+        } catch (Throwable e) {
+            logger.error("----Error while activating Naver authenticator----", e);
+        }
+    }
+
+    @Deactivate
+    protected void deactivate(ComponentContext ctxt) {
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("----Naver Authenticator bundle is deactivated----");
+        }
+    }
 
 }

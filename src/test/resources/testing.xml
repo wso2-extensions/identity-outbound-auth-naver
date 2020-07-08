@@ -1,11 +1,9 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="Identity-connector-naver-test-suite">
-
     <test name="facebook-authenticator-all" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.application.authenticator.social.naver.NaverAuthenticatorTests"/>
         </classes>
     </test>
-
 </suite>
