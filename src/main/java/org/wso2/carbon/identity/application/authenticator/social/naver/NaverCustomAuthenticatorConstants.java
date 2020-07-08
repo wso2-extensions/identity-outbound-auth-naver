@@ -29,13 +29,6 @@ public class NaverCustomAuthenticatorConstants {
     public static final String NAVER_GRANT_TYPE_CODE = "code";
 
     public static final String NV_USER_ID = "id";
-    public static final String NV_USER_NICKNAME = "nickname";
-    public static final String NV_USER_NAME = "name";
-    public static final String NV_USER_EMAIL = "email";
-    public static final String NV_USER_GENDER = "gender";
-    public static final String NV_USER_AGE = "age";
-    public static final String NV_USER_BDAY = "birthday";
-    public static final String NV_USER_IMAGE = "profile_image";
 
     public static final String NAVER_AUTHZ_URL = "AuthnEndpoint";
     public static final String NAVER_TOKEN_URL = "AuthTokenEndpoint";
