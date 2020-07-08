@@ -314,7 +314,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
             throws ApplicationAuthenticatorException {
 
         if (userInfoJson != null) {
-            Map<ClaimMapping, String> claims= new HashMap<>();
+            Map<ClaimMapping, String> claims = new HashMap<>();
 
             Iterator keys = userInfoJson.keys();
 
@@ -325,52 +325,6 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
                             (String) userInfoJson.get(key));
                 }
             }
-
-//        if (userInfoJson != null) {
-//            String id = null, nickName = null, name = null, email = null, gender = null, age = null, birthDay = null,
-//                    profileImage = null;
-//
-//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_ID))
-//                id = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_ID);
-//
-//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME))
-//                nickName = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME);
-//
-//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_NAME))
-//                name = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_NAME);
-//
-//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_EMAIL))
-//                email = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_EMAIL);
-//
-//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_GENDER))
-//                gender = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_GENDER);
-//
-//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_AGE))
-//                age = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_AGE);
-//
-//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_BDAY))
-//                birthDay = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_BDAY);
-//
-//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_IMAGE))
-//                profileImage = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_IMAGE);
-//
-//            claims = new HashMap<>();
-//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_ID,
-//                    NaverCustomAuthenticatorConstants.NV_USER_ID, null, false), id);
-//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME,
-//                    NaverCustomAuthenticatorConstants.NV_USER_NICKNAME, null, false), nickName);
-//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_NAME,
-//                    NaverCustomAuthenticatorConstants.NV_USER_NAME, null, false), name);
-//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_EMAIL,
-//                    NaverCustomAuthenticatorConstants.NV_USER_EMAIL, null, false), email);
-//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_GENDER,
-//                    NaverCustomAuthenticatorConstants.NV_USER_GENDER, null, false), gender);
-//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_AGE,
-//                    NaverCustomAuthenticatorConstants.NV_USER_AGE, null, false), age);
-//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_BDAY,
-//                    NaverCustomAuthenticatorConstants.NV_USER_BDAY, null, false), birthDay);
-//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_IMAGE,
-//                    NaverCustomAuthenticatorConstants.NV_USER_IMAGE, null, false), profileImage);
 
             String subjectFromClaims = FrameworkUtils
                     .getFederatedSubjectFromClaims(context.getExternalIdP().getIdentityProvider(), claims);
@@ -446,8 +400,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
         callbackUrl.setName(NaverCustomAuthenticatorConstants.CALLBACK_URL);
         callbackUrl.setDisplayName("Callback Url");
         callbackUrl.setDescription("Enter Naver callback url");
-        callbackUrl.setDefaultValue("id");
-        callbackUrl.setRequired(false);
+        callbackUrl.setRequired(true);
         configProperties.add(callbackUrl);
 
         return configProperties;
