@@ -36,8 +36,10 @@ public class NaverCustomAuthenticatorConstants {
     public static final String NV_USER_AGE = "age";
     public static final String NV_USER_BDAY = "birthday";
     public static final String NV_USER_IMAGE = "profile_image";
-    public static final String OAUTH2_PARAM_ERROR = null;
 
+    public static final String NAVER_AUTHZ_URL = "AuthnEndpoint";
+    public static final String NAVER_TOKEN_URL = "AuthTokenEndpoint";
+    public static final String NAVER_USER_INFO_URL = "UserInfoEndpoint";
 }
 
 																		

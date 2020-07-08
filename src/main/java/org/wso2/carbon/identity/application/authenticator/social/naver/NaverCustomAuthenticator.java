@@ -26,10 +26,11 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +63,9 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
     private static final long serialVersionUID = 8654763286341993633L;
     private static final Log logger = LogFactory.getLog(NaverCustomAuthenticator.class);
     private String stateToken;
+    private String tokenEndpoint;
+    private String userInfoEndpoint;
+    private String oAuthEndpoint;
 
     @Override
     protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
@@ -142,8 +146,8 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
             throws ApplicationAuthenticatorException {
 
         OAuthClientRequest tokenRequest = null;
-        String token = null;
-        String tokenResponseStr = null;
+        String token;
+        String tokenResponseStr;
         try {
             String state = this.stateToken;
             tokenRequest = buidTokenRequest(tokenEndPoint, clientId, clientSecret, state, code);
@@ -184,7 +188,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
         try {
             URLConnection urlConnection = new URL(url).openConnection();
             bufferReader = new BufferedReader(
-                    new InputStreamReader(urlConnection.getInputStream(), Charset.forName("utf-8")));
+                    new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
 
             String inputLine = bufferReader.readLine();
             while (inputLine != null) {
@@ -201,7 +205,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
     protected OAuthClientRequest buidTokenRequest(String tokenEndPoint, String clientId, String clientSecret,
                                                   String state, String code) throws ApplicationAuthenticatorException {
 
-        OAuthClientRequest tokenRequest = null;
+        OAuthClientRequest tokenRequest;
         try {
             tokenRequest = OAuthClientRequest.tokenLocation(tokenEndPoint).setClientId(clientId)
                     .setClientSecret(clientSecret).setGrantType(GrantType.AUTHORIZATION_CODE).setCode(code)
@@ -215,10 +219,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
     @Override
     public boolean canHandle(HttpServletRequest request) {
 
-        if (isOauthStateParamExists(request) && (isOauth2CodeParamExists(request))) {
-            return true;
-        }
-        return false;
+        return isOauthStateParamExists(request) && (isOauth2CodeParamExists(request));
     }
 
     protected String getUserInfo(String apiUrl, Map<String, String> requestHeaders) {
@@ -276,7 +277,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
     @Override
     public String getContextIdentifier(HttpServletRequest request) {
 
-        String state = null;
+        String state;
         try {
             state = OAuthAuthzResponse.oauthCodeAuthzResponse(request).getState();
             return state.split(",")[0];
@@ -312,63 +313,78 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
     protected void buildClaims(AuthenticationContext context, JSONObject userInfoJson)
             throws ApplicationAuthenticatorException {
 
-        Map<ClaimMapping, String> claims;
-
         if (userInfoJson != null) {
-            String id = null, nickName = null, name = null, email = null, gender = null, age = null, birthDay = null,
-                    profileImage = null;
+            Map<ClaimMapping, String> claims= new HashMap<>();
 
-            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_ID))
-                id = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_ID);
+            Iterator keys = userInfoJson.keys();
 
-            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME))
-                nickName = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME);
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                if (userInfoJson.get(key) instanceof JSONObject) {
+                    claims.put(ClaimMapping.build(key, key, null, false),
+                            (String) userInfoJson.get(key));
+                }
+            }
 
-            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_NAME))
-                name = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_NAME);
-
-            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_EMAIL))
-                email = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_EMAIL);
-
-            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_GENDER))
-                gender = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_GENDER);
-
-            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_AGE))
-                age = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_AGE);
-
-            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_BDAY))
-                birthDay = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_BDAY);
-
-            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_IMAGE))
-                profileImage = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_IMAGE);
-
-            claims = new HashMap<ClaimMapping, String>();
-            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_ID,
-                    NaverCustomAuthenticatorConstants.NV_USER_ID, null, false), id);
-            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME,
-                    NaverCustomAuthenticatorConstants.NV_USER_NICKNAME, null, false), nickName);
-            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_NAME,
-                    NaverCustomAuthenticatorConstants.NV_USER_NAME, null, false), name);
-            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_EMAIL,
-                    NaverCustomAuthenticatorConstants.NV_USER_EMAIL, null, false), email);
-            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_GENDER,
-                    NaverCustomAuthenticatorConstants.NV_USER_GENDER, null, false), gender);
-            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_AGE,
-                    NaverCustomAuthenticatorConstants.NV_USER_AGE, null, false), age);
-            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_BDAY,
-                    NaverCustomAuthenticatorConstants.NV_USER_BDAY, null, false), birthDay);
-            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_IMAGE,
-                    NaverCustomAuthenticatorConstants.NV_USER_IMAGE, null, false), profileImage);
+//        if (userInfoJson != null) {
+//            String id = null, nickName = null, name = null, email = null, gender = null, age = null, birthDay = null,
+//                    profileImage = null;
+//
+//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_ID))
+//                id = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_ID);
+//
+//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME))
+//                nickName = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME);
+//
+//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_NAME))
+//                name = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_NAME);
+//
+//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_EMAIL))
+//                email = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_EMAIL);
+//
+//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_GENDER))
+//                gender = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_GENDER);
+//
+//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_AGE))
+//                age = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_AGE);
+//
+//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_BDAY))
+//                birthDay = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_BDAY);
+//
+//            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_IMAGE))
+//                profileImage = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_IMAGE);
+//
+//            claims = new HashMap<>();
+//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_ID,
+//                    NaverCustomAuthenticatorConstants.NV_USER_ID, null, false), id);
+//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_NICKNAME,
+//                    NaverCustomAuthenticatorConstants.NV_USER_NICKNAME, null, false), nickName);
+//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_NAME,
+//                    NaverCustomAuthenticatorConstants.NV_USER_NAME, null, false), name);
+//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_EMAIL,
+//                    NaverCustomAuthenticatorConstants.NV_USER_EMAIL, null, false), email);
+//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_GENDER,
+//                    NaverCustomAuthenticatorConstants.NV_USER_GENDER, null, false), gender);
+//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_AGE,
+//                    NaverCustomAuthenticatorConstants.NV_USER_AGE, null, false), age);
+//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_BDAY,
+//                    NaverCustomAuthenticatorConstants.NV_USER_BDAY, null, false), birthDay);
+//            claims.put(ClaimMapping.build(NaverCustomAuthenticatorConstants.NV_USER_IMAGE,
+//                    NaverCustomAuthenticatorConstants.NV_USER_IMAGE, null, false), profileImage);
 
             String subjectFromClaims = FrameworkUtils
                     .getFederatedSubjectFromClaims(context.getExternalIdP().getIdentityProvider(), claims);
+
+            String id = null;
+            if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_ID))
+                id = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_ID);
 
             if (StringUtils.isNotBlank(subjectFromClaims)) {
                 AuthenticatedUser authenticatedUser = AuthenticatedUser
                         .createFederateAuthenticatedUserFromSubjectIdentifier(subjectFromClaims);
                 context.setSubject(authenticatedUser);
             } else {
-                if (!StringUtils.isEmpty(userInfoJson.getString("id"))) {
+                if (!StringUtils.isEmpty(id)) {
                     AuthenticatedUser authenticatedUser = AuthenticatedUser
                             .createFederateAuthenticatedUserFromSubjectIdentifier(id);
                     context.setSubject(authenticatedUser);
@@ -409,7 +425,7 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
     @Override
     public List<Property> getConfigurationProperties() {
 
-        List<Property> configProperties = new ArrayList<Property>();
+        List<Property> configProperties = new ArrayList<>();
 
         Property clientId = new Property();
         clientId.setName(NaverCustomAuthenticatorConstants.CLIENT_ID);
@@ -438,19 +454,46 @@ public class NaverCustomAuthenticator extends AbstractApplicationAuthenticator
 
     }
 
-    protected String getAuthorizationServerEndpoint() {
+    protected void initTokenEndpoint() {
 
-        return "https://nid.naver.com/oauth2.0/authorize";
+        this.tokenEndpoint = getAuthenticatorConfig().getParameterMap()
+                .get(NaverCustomAuthenticatorConstants.NAVER_TOKEN_URL);
     }
 
-    protected String getUserInfoEndpoint() {
+    protected void initOAuthEndpoint() {
 
-        return "https://openapi.naver.com/v1/nid/me";
+        this.oAuthEndpoint = getAuthenticatorConfig().getParameterMap()
+                .get(NaverCustomAuthenticatorConstants.NAVER_AUTHZ_URL);
+    }
+
+    protected void initUserInfoEndPoint() {
+
+        this.userInfoEndpoint = getAuthenticatorConfig().getParameterMap()
+                .get(NaverCustomAuthenticatorConstants.NAVER_USER_INFO_URL);
     }
 
     protected String getTokenEndpoint() {
 
-        return "https://nid.naver.com/oauth2.0/token";
+        if (StringUtils.isBlank(this.tokenEndpoint)) {
+            initTokenEndpoint();
+        }
+        return this.tokenEndpoint;
+    }
+
+    protected String getAuthorizationServerEndpoint() {
+
+        if (StringUtils.isBlank(this.oAuthEndpoint)) {
+            initOAuthEndpoint();
+        }
+        return this.oAuthEndpoint;
+    }
+
+    protected String getUserInfoEndpoint() {
+
+        if (StringUtils.isBlank(this.userInfoEndpoint)) {
+            initUserInfoEndPoint();
+        }
+        return this.userInfoEndpoint;
     }
 
 }

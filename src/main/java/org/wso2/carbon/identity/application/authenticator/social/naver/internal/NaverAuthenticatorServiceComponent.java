@@ -34,12 +34,12 @@ public class NaverAuthenticatorServiceComponent {
     private static final Log logger = LogFactory.getLog(NaverAuthenticatorServiceComponent.class);
 
     @Activate
-    protected void activate(ComponentContext ctxt) {
+    protected void activate(ComponentContext context) {
 
         try {
             NaverCustomAuthenticator naverAuthenticator = new NaverCustomAuthenticator();
-            Hashtable<String, String> props = new Hashtable<String, String>();
-            ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(), naverAuthenticator,
+            Hashtable<String, String> props = new Hashtable<>();
+            context.getBundleContext().registerService(ApplicationAuthenticator.class.getName(), naverAuthenticator,
                     props);
             if (logger.isDebugEnabled()) {
                 logger.debug("----Naver Authenticator bundle is activated----");
