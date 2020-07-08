@@ -36,6 +36,7 @@ public class NaverCustomAuthenticatorConstants {
 	public static final String NV_USER_AGE = "age";
 	public static final String NV_USER_BDAY = "birthday";
 	public static final String NV_USER_IMAGE = "profile_image";
+	protected static final String OAUTH2_PARAM_ERROR = null;
 	    
 }
 
