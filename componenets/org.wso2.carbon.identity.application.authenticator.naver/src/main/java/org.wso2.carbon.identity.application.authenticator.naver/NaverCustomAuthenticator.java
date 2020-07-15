@@ -139,6 +139,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
         clientId.setDisplayName("Client Id");
         clientId.setRequired(true);
         clientId.setDescription("Enter client identifier value");
+        clientId.setDisplayOrder(1);
         configProperties.add(clientId);
 
         Property clientSecret = new Property();
@@ -147,6 +148,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
         clientSecret.setRequired(true);
         clientSecret.setConfidential(true);
         clientSecret.setDescription("Enter client secret value");
+        clientSecret.setDisplayOrder(2);
         configProperties.add(clientSecret);
 
         Property callbackUrl = new Property();
@@ -154,6 +156,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
         callbackUrl.setDisplayName("Callback Url");
         callbackUrl.setRequired(true);
         callbackUrl.setDescription("Enter callback url");
+        callbackUrl.setDisplayOrder(3);
         configProperties.add(callbackUrl);
 
         return configProperties;

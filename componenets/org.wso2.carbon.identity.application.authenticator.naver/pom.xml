@@ -109,7 +109,7 @@
             <artifactId>identity-outbound-oauth-oauth2</artifactId>
             <scope>system</scope>
             <systemPath>
-                ${project.basedir}/src/main/resources/org.wso2.carbon.identity.application.authenticator.oauth2-1.0-SNAPSHOT.jar
+                ${project.basedir}/src/main/resources/org.wso2.carbon.identity.application.authenticator.oauth2-1.0.0-SNAPSHOT.jar
             </systemPath>
             <version>${oauth2.outbound.version}</version>
         </dependency>
