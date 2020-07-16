@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/identity-outbound-oauth-naver.iml" filepath="$PROJECT_DIR$/identity-outbound-oauth-naver.iml" />
-      <module fileurl="file://$PROJECT_DIR$/componenets/org.wso2.carbon.identity.application.authenticator.naver/org.wso2.carbon.identity.application.authenticator.naver.iml" filepath="$PROJECT_DIR$/componenets/org.wso2.carbon.identity.application.authenticator.naver/org.wso2.carbon.identity.application.authenticator.naver.iml" />
-    </modules>
-  </component>
-</project>
