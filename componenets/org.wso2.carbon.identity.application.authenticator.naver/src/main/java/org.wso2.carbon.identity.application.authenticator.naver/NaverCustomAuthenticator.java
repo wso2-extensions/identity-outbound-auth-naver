@@ -86,8 +86,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
                 while (keys.hasNext()) {
                     String key = (String) keys.next();
                     if (userInfoJson.get(key) instanceof JSONObject) {
-                        claims.put(ClaimMapping.build(key, key, null, false),
-                                (String) userInfoJson.get(key));
+                        claims.put(ClaimMapping.build(key, key, null, false), (String) userInfoJson.get(key));
                     }
                 }
 
