@@ -82,9 +82,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
             JSONObject userInfoJson = responseJson.getJSONObject("response");
             if (userInfoJson != null) {
                 Map<ClaimMapping, String> claims = new HashMap<>();
-
                 Iterator keys = userInfoJson.keys();
-
                 while (keys.hasNext()) {
                     String key = (String) keys.next();
                     if (userInfoJson.get(key) instanceof JSONObject) {
@@ -97,9 +95,9 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
                         .getFederatedSubjectFromClaims(context.getExternalIdP().getIdentityProvider(), claims);
 
                 String id = null;
-                if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_ID))
+                if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_ID)) {
                     id = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_ID);
-
+                }
                 if (StringUtils.isNotBlank(subjectFromClaims)) {
                     AuthenticatedUser authenticatedUser = AuthenticatedUser
                             .createFederateAuthenticatedUserFromSubjectIdentifier(subjectFromClaims);
