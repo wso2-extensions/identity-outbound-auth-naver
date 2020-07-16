@@ -58,19 +58,19 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
     @Override
     protected String getTokenEndpoint(Map<String, String> authenticatorProperties) {
 
-        return "https://nid.naver.com/oauth2.0/token";
+        return NaverCustomAuthenticatorConstants.NV_TOKEN_URL;
     }
 
     @Override
     protected String getAuthorizationServerEndpoint(Map<String, String> authenticatorProperties) {
 
-        return "https://nid.naver.com/oauth2.0/authorize";
+        return NaverCustomAuthenticatorConstants.NV_AUTH_URL;
     }
 
     @Override
     protected String getUserInfoEndpoint(Map<String, String> authenticatorProperties) {
 
-        return "https://openapi.naver.com/v1/nid/me";
+        return NaverCustomAuthenticatorConstants.NV_USER_INFO_URL;
     }
 
     protected void buildClaims(AuthenticationContext context, String userInfoString)

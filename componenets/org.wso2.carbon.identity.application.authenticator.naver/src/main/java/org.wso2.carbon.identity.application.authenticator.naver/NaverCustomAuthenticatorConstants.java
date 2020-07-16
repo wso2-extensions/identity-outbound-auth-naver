@@ -25,4 +25,7 @@ public class NaverCustomAuthenticatorConstants {
     public static final String CLIENT_SECRET = "ClientSecret";
     public static final String CALLBACK_URL = "CallbackUrl";
     public static final String NV_USER_ID = "id";
+    public static final String NV_TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
+    public static final String NV_USER_INFO_URL = "https://openapi.naver.com/v1/nid/me";
+    public static final String NV_AUTH_URL = "https://nid.naver.com/oauth2.0/authorize";
 }
