@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
@@ -14,7 +14,7 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- ******************************************************************************/
+ */
 
 package org.wso2.carbon.identity.application.authenticator.naver.internal;
 
@@ -43,11 +43,11 @@ public class NaverServiceComponent {
             ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(), naverAuthenticator,
                     props);
             if (logger.isDebugEnabled()) {
-                logger.debug("----Naver Authenticator bundle is activated----");
+                logger.debug("Naver Authenticator bundle is activated");
             }
 
         } catch (Throwable e) {
-            logger.error("----Error while activating Naver authenticator----", e);
+            logger.error("Error while activating Naver authenticator", e);
         }
     }
 
@@ -55,8 +55,7 @@ public class NaverServiceComponent {
     protected void deactivate(ComponentContext ctxt) {
 
         if (logger.isDebugEnabled()) {
-            logger.debug("----Naver Authenticator bundle is deactivated----");
+            logger.debug("Naver Authenticator bundle is deactivated");
         }
     }
-
 }
