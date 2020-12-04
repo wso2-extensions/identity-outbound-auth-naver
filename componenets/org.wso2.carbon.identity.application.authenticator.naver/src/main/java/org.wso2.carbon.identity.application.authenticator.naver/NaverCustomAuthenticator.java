@@ -36,6 +36,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/*
+ * Naver Custom Authenticator is an outbound authenticator implementation for social login provider named Naver
+ * This extends Oauth Generic Authenticator implementation
+ */
 public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
 
     private static final Log logger = LogFactory.getLog(Oauth2GenericAuthenticator.class);

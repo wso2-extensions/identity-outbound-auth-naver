@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authenticator.naver;
 
+/*
+ * Constant class for NaverCustomAuthenticator.
+ */
 public class NaverCustomAuthenticatorConstants {
 
     public static final String AUTHENTICATOR_NAME = "NAVER";

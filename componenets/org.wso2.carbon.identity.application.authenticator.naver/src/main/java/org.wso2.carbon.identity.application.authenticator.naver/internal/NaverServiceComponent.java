@@ -29,6 +29,9 @@ import org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthe
 
 import java.util.Hashtable;
 
+/*
+ * NaverServiceComponent is the Service Component Class.
+ */
 @Component(name = "NaverServiceComponent", immediate = true)
 public class NaverServiceComponent {
 
