@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
@@ -14,7 +14,7 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- ******************************************************************************/
+ */
 
 package org.wso2.carbon.identity.application.authenticator.naver;
 
@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthenticatorException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authenticator.oauth2.Oauth2GenericAuthenticator;
@@ -37,6 +36,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/*
+ * Naver Custom Authenticator is an outbound authenticator implementation for social login provider named Naver
+ * This extends Oauth Generic Authenticator implementation
+ */
 public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
 
     private static final Log logger = LogFactory.getLog(Oauth2GenericAuthenticator.class);
@@ -73,12 +76,12 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
         return NaverCustomAuthenticatorConstants.NV_USER_INFO_URL;
     }
 
+    @Override
     protected void buildClaims(AuthenticationContext context, String userInfoString)
-            throws ApplicationAuthenticatorException, AuthenticationFailedException {
+            throws ApplicationAuthenticatorException {
 
-        JSONObject responseJson = new JSONObject(userInfoString);
-
-        if (responseJson != null) {
+        if (StringUtils.isNotBlank(userInfoString)) {
+            JSONObject responseJson = new JSONObject(userInfoString);
             JSONObject userInfoJson = responseJson.getJSONObject("response");
             if (userInfoJson != null) {
                 Map<ClaimMapping, String> claims = new HashMap<>();
@@ -86,13 +89,12 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
                 while (keys.hasNext()) {
                     String key = (String) keys.next();
                     if (userInfoJson.get(key) instanceof JSONObject) {
-                        claims.put(ClaimMapping.build(key, key, null, false), (String) userInfoJson.get(key));
+                        claims.put(ClaimMapping.build(key, key, null, false),
+                                (String) userInfoJson.get(key));
                     }
                 }
-
                 String subjectFromClaims = FrameworkUtils
                         .getFederatedSubjectFromClaims(context.getExternalIdP().getIdentityProvider(), claims);
-
                 String id = null;
                 if (userInfoJson.has(NaverCustomAuthenticatorConstants.NV_USER_ID)) {
                     id = userInfoJson.getString(NaverCustomAuthenticatorConstants.NV_USER_ID);
@@ -102,7 +104,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
                             .createFederateAuthenticatedUserFromSubjectIdentifier(subjectFromClaims);
                     context.setSubject(authenticatedUser);
                 } else {
-                    if (!StringUtils.isEmpty(id)) {
+                    if (StringUtils.isNotBlank(id)) {
                         AuthenticatedUser authenticatedUser = AuthenticatedUser
                                 .createFederateAuthenticatedUserFromSubjectIdentifier(id);
                         context.setSubject(authenticatedUser);
@@ -111,7 +113,6 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
                     }
                 }
                 context.getSubject().setUserAttributes(claims);
-
             } else {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Decoded json object is null");
@@ -120,9 +121,9 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
             }
         } else {
             if (logger.isDebugEnabled()) {
-                logger.debug("Decoded json object is null");
+                logger.debug("Decoded json object is empty");
             }
-            throw new ApplicationAuthenticatorException("Decoded json object is null");
+            throw new ApplicationAuthenticatorException("Decoded json object is empty");
         }
     }
 
@@ -158,5 +159,4 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
 
         return configProperties;
     }
-
 }

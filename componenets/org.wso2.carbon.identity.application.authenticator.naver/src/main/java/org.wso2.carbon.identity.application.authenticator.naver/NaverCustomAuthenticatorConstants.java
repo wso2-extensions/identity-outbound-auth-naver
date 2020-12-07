@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
@@ -14,10 +14,13 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- ******************************************************************************/
+ */
 
 package org.wso2.carbon.identity.application.authenticator.naver;
 
+/*
+ * Constant class for NaverCustomAuthenticator.
+ */
 public class NaverCustomAuthenticatorConstants {
 
     public static final String AUTHENTICATOR_NAME = "NAVER";
