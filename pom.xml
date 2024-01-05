@@ -188,7 +188,7 @@
         <oauth2.outbound.version>1.0.1</oauth2.outbound.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <oltu.version>1.0.0.wso2v3</oltu.version>
-        <carbon.identity.framework.version>5.17.5</carbon.identity.framework.version>
+        <carbon.identity.framework.version>5.20.254</carbon.identity.framework.version>
         <apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
         <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
