@@ -195,7 +195,7 @@
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
-        <identity.framework.package.import.version.range>[5.14.0, 6.0.0)
+        <identity.framework.package.import.version.range>[5.14.0, 8.0.0)
         </identity.framework.package.import.version.range>
         <oauth2.generic.version.range>[0.0,1)</oauth2.generic.version.range>
         <oltu.version.range>[1.0,2)</oltu.version.range>
