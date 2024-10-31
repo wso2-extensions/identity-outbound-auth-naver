@@ -8,7 +8,7 @@ Follow the steps given below to set this up.
 
 * [Step 1 - Configure the Naver App](#step-1---configure-the-naver-app)
 * [Step 2 - Deploy the Pickup Dispatch Sample Web App](#step-2---deploy-the-pickup-dispatch-sample-web-app)
-* [Step 3 - Configure the Identity Provider (IdP)](#step-3---configure-the-identity-provider-idp)
+* [Step 3 - Configure the Connection (IdP)](#step-3---Configure--the--Connection)
 * [Step 4 - Configure the Service Provider](#step-4---configure-the-service-provider)
 * [Step 5 - Test the Sample Application](#step-5---test-the-sample-application)
 
@@ -18,7 +18,7 @@ Follow the steps given below to set this up.
    `<IS_HOME>/repository/components/dropins` directory.
    You can download the .jar file
    (``)
-   from the [WSO2 Store](https://store.wso2.com/store/assets/isconnector/).
+   from the [WSO2 Store](https://store.wso2.com/?page=1).
 
 2. Sign up to Naver using the following URL : `https://nid.naver.com/user2/V2Join.nhn?m=agree&lang=en_US&cpno=`
    (If you are already existing user neglect this step)
@@ -50,7 +50,7 @@ The next step is to deploy the Pickup Dispatch sample web app in order to use it
 To configure this, Download [saml2-web-app-pickup-dispatch
 webapp](https://github.com/wso2/samples-is/releases/download/v4.5.2/saml2-web-app-pickup-dispatch.com.war) and [configure](https://is.docs.wso2.com/en/5.9.0/learn/deploying-the-sample-app/#deploy-the-sample-web-app_1) it using TOMCAT.
 
-## Step 3 - Configure the Connection
+## Step 3 - Configure the Connection (IdP)
 
 Next, add a connection in WSO2 Identity Server.
 
@@ -94,9 +94,6 @@ Next, add a connection in WSO2 Identity Server.
     </table>
 
 8. Click on **Finish**.
-9. Then went to **Attributes** section and click **Add Attribute Mappings**.
-10. For External **IdP Attribute** give id and for **Maps to** User ID (http://wso2.org/claims/userid) and save.
-11. Under the same section select id as the Subject Attribute.
 
 You have now added the identity provider.
 
@@ -113,9 +110,9 @@ The next step is to configure the service provider on the WSO2 Identity Server.
 
 5. As for the  Issuer: saml2-web-app-pickup-dispatch.com and for  Assertion Consumer URL: Enter `http://localhost.com:8080/saml2-web-app-pickup-dispatch.com/home.jsp` and click
    **Create**.
-6. Go to the **Login Flow**. Then remove exisiting option and add a new option. Then select KAKAO (the name you used for create connection).
+6. Go to the **Login Flow**. Then remove exisiting option and add a new option. Then select Naver (the name you used for create connection).
 7. Save the changes.
-8. 
+
 ## Step 5 - Test the Sample Application
 
 1. To test the sample, go to the following URL:
