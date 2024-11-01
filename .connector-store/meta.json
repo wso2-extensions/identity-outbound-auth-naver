@@ -1,0 +1,17 @@
+{
+  "name": "Naver Authenticator",
+  "owner": "WSO2",
+  "category": "Federated Authenticator",
+  "documentationUrl": "https://github.com/wso2-extensions/identity-outbound-auth-naver/blob/master/docs/README_LATEST.md",
+  "description": "The Naver Authenticator allows you to authenticate a user using Naver through WSO2 Identity Server.",
+  "status": "Active",
+  "labels": ["Naver", "Naver-connector"],
+  "releases": [
+    {
+      "tagName": "v1.0.3",
+      "products": [
+        "IS 7.0.0"
+      ]
+    }
+  ]
+}
