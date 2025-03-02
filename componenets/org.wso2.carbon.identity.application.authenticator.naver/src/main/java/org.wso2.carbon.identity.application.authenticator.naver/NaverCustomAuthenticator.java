@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authenticator.naver;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,17 +41,23 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authenticator.oauth2.Oauth2GenericAuthenticator;
 import org.wso2.carbon.identity.application.authenticator.oauth2.Oauth2GenericAuthenticatorConstants;
+import org.wso2.carbon.identity.application.authenticator.oidc.util.OIDCTokenValidationUtil;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -62,6 +71,7 @@ import static org.wso2.carbon.identity.application.authenticator.naver.NaverCust
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.CLIENT_ID;
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.CLIENT_SECRET;
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.IS_BASIC_AUTH_ENABLED;
+import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.ID_TOKEN_PARAM;
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.REDIRECT_URL_SUFFIX;
 
 
@@ -270,6 +280,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
         List<String> requiredParameterList = new ArrayList<>();
         if (isTrustedTokenIssuer(context)) {
             requiredParameterList.add(NaverCustomAuthenticatorConstants.ACCESS_TOKEN_PARAM);
+            requiredParameterList.add(ID_TOKEN_PARAM);
             authenticatorData.setPromptType(FrameworkConstants.AuthenticatorPromptType.INTERNAL_PROMPT);
             authenticatorData.setAdditionalData(getAdditionalData(context, true));
         } else {
@@ -298,7 +309,9 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
             String tokenEP = this.getTokenEndpoint(authenticatorProperties);
             String token;
             if (isTrustedTokenIssuer(context) && isNativeSDKBasedFederationCall(request)) {
+                String idToken = request.getParameter(ID_TOKEN_PARAM);
                 token = request.getParameter(NaverCustomAuthenticatorConstants.ACCESS_TOKEN_PARAM);
+                validateJWTToken(context, idToken);
             } else {
                 String callbackUrl = getCallbackUrl(authenticatorProperties);
                 if (Boolean.parseBoolean((String) context.getProperty(NaverCustomAuthenticatorConstants.IS_API_BASED))) {
@@ -316,6 +329,10 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
         } catch (ApplicationAuthenticatorException | MisconfigurationException e) {
             logger.error("Failed to process Connect response.", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
+        } catch (IdentityOAuth2Exception e) {
+            throw new AuthenticationFailedException("JWT token is invalid.");
+        } catch (ParseException | IdentityProviderManagementException | JOSEException e) {
+            throw new AuthenticationFailedException("JWT token validation Failed.", e);
         }
     }
 
@@ -394,5 +411,33 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
     private boolean isNativeSDKBasedFederationCall(HttpServletRequest request) {
 
         return request.getParameter(NaverCustomAuthenticatorConstants.ACCESS_TOKEN_PARAM) != null;
+    }
+
+    private void validateJWTToken(AuthenticationContext context, String idToken) throws
+            ParseException, AuthenticationFailedException, JOSEException, IdentityOAuth2Exception, IdentityProviderManagementException {
+
+        SignedJWT signedJWT = SignedJWT.parse(idToken);
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+        OIDCTokenValidationUtil.validateIssuerClaim(claimsSet);
+        String tenantDomain = context.getTenantDomain();
+        String idpIdentifier = OIDCTokenValidationUtil.getIssuer(claimsSet);
+        IdentityProvider identityProvider = getIdentityProvider(idpIdentifier, tenantDomain);
+
+        OIDCTokenValidationUtil.validateSignature(signedJWT, identityProvider);
+        OIDCTokenValidationUtil.validateAudience(claimsSet.getAudience(), identityProvider, tenantDomain);
+    }
+
+    private IdentityProvider getIdentityProvider(String jwtIssuer, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        IdentityProvider identityProvider;
+        identityProvider = IdentityProviderManager.getInstance().getIdPByMetadataProperty(
+                IdentityApplicationConstants.IDP_ISSUER_NAME, jwtIssuer, tenantDomain, false);
+
+        if (identityProvider == null) {
+            identityProvider = IdentityProviderManager.getInstance().getIdPByName(jwtIssuer, tenantDomain);
+        }
+
+        return identityProvider;
     }
 }
