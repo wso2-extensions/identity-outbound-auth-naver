@@ -77,7 +77,6 @@ import static org.wso2.carbon.identity.application.authenticator.naver.NaverCust
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.ID_TOKEN_PARAM;
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.REDIRECT_URL_SUFFIX;
 
-
 /*
  * Naver Custom Authenticator is an outbound authenticator implementation for social login provider named Naver
  * This extends Oauth Generic Authenticator implementation
