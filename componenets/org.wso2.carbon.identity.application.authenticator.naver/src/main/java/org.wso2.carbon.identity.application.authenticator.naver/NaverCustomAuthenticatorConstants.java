@@ -29,6 +29,7 @@ public class NaverCustomAuthenticatorConstants {
     public static final String OAUTH2 = "oauth2";
     public static final String OAUTH2_GRANT_TYPE_CODE = "code";
     public static final String OAUTH2_PARAM_STATE = "state";
+    public static final String AUTHENTICATOR_MESSAGE = "authenticatorMessage";
     public static final String CALLBACK_URL = "CallbackUrl";
     public static final String CLIENT_ID = "ClientId";
     public static final String CLIENT_ID_PARAM = "clientId";

@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.M
 import org.wso2.carbon.identity.application.authentication.framework.model.AdditionalData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorMessage;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authenticator.oauth2.Oauth2GenericAuthenticator;
@@ -66,7 +67,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.AUTHENTICATOR_NAME;
+import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.AUTHENTICATOR_MESSAGE;
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.OAUTH2_PARAM_STATE;
+import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.OAUTH2_GRANT_TYPE_CODE;
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.CALLBACK_URL;
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.CLIENT_ID;
 import static org.wso2.carbon.identity.application.authenticator.naver.NaverCustomAuthenticatorConstants.CLIENT_SECRET;
@@ -117,7 +120,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
     protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException {
 
         if (logger.isDebugEnabled()) {
-            logger.debug("initiateAuthenticationRequest");
+            logger.debug("Authentication request has initialized.");
         }
 
         try {
@@ -126,7 +129,12 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
             String callbackUrl = (String)authenticatorProperties.get(CALLBACK_URL);
             String authorizationEP = this.getAuthorizationServerEndpoint(authenticatorProperties);
             String state = context.getContextIdentifier() + "," + NaverCustomAuthenticatorConstants.OAUTH2;
-            OAuthClientRequest authzRequest = OAuthClientRequest.authorizationLocation(authorizationEP).setClientId(clientId).setResponseType("code").setRedirectURI(callbackUrl).setState(state).buildQueryMessage();
+            OAuthClientRequest authzRequest = OAuthClientRequest.authorizationLocation(authorizationEP)
+                                                .setClientId(clientId)
+                                                .setResponseType(OAUTH2_GRANT_TYPE_CODE)
+                                                .setRedirectURI(callbackUrl)
+                                                .setState(state).buildQueryMessage();
+
             if (logger.isDebugEnabled()) {
                 logger.debug("Authorization Request: " + authzRequest.getLocationUri());
             }
@@ -136,7 +144,6 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
                     authzRequest.getLocationUri());
             response.sendRedirect(authzRequest.getLocationUri());
         } catch (IOException e) {
-            logger.error("Exception while sending to the login page.", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (OAuthSystemException e) {
             logger.error("Exception while building authorization code request.", e);
@@ -284,12 +291,15 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
             authenticatorData.setPromptType(FrameworkConstants.AuthenticatorPromptType.INTERNAL_PROMPT);
             authenticatorData.setAdditionalData(getAdditionalData(context, true));
         } else {
-            requiredParameterList.add(NaverCustomAuthenticatorConstants.OAUTH2_GRANT_TYPE_CODE);
+            requiredParameterList.add(OAUTH2_GRANT_TYPE_CODE);
             requiredParameterList.add(NaverCustomAuthenticatorConstants.OAUTH2_PARAM_STATE);
             authenticatorData.setPromptType(FrameworkConstants.AuthenticatorPromptType.REDIRECTION_PROMPT);
             authenticatorData.setAdditionalData(getAdditionalData(context, false));
         }
         authenticatorData.setRequiredParams(requiredParameterList);
+        if (context.getProperty(AUTHENTICATOR_MESSAGE) != null) {
+            authenticatorData.setMessage((AuthenticatorMessage) context.getProperty(AUTHENTICATOR_MESSAGE));
+        }
 
         return Optional.of(authenticatorData);
     }
@@ -298,7 +308,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
     protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException {
 
         if (logger.isDebugEnabled()) {
-            logger.debug("processAuthenticationResponse");
+            logger.debug("Processing the authentication response.");
         }
 
         try {
@@ -308,7 +318,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
             Boolean basicAuthEnabled = Boolean.parseBoolean((String)authenticatorProperties.get(IS_BASIC_AUTH_ENABLED));
             String tokenEP = this.getTokenEndpoint(authenticatorProperties);
             String token;
-            if (isTrustedTokenIssuer(context) && isNativeSDKBasedFederationCall(request)) {
+            if (isTrustedTokenIssuer(context)) {
                 String idToken = request.getParameter(ID_TOKEN_PARAM);
                 token = request.getParameter(NaverCustomAuthenticatorConstants.ACCESS_TOKEN_PARAM);
                 validateJWTToken(context, idToken);
@@ -336,6 +346,13 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
         }
     }
 
+    /**
+     * Retrieves additional data for the authentication process.
+     *
+     * @param context Authentication context.
+     * @param isNativeSDKBasedFederationCall Whether the call is from native SDK.
+     * @return Additional data.
+     */
     private static AdditionalData getAdditionalData(
             AuthenticationContext context, boolean isNativeSDKBasedFederationCall) {
 
