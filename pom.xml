@@ -59,6 +59,31 @@
                 <artifactId>org.wso2.carbon.identity.application.authenticator.oidc</artifactId>
                 <version>${carbon.identity.application.authenticator.oidc.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <scope>test</scope>
+                <version>${testng.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-testng</artifactId>
+                <version>${mockito-testng.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jacoco</groupId>
+                <artifactId>org.jacoco.agent</artifactId>
+                <classifier>runtime</classifier>
+                <scope>test</scope>
+                <version>${jacoco.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
@@ -199,6 +224,10 @@
         <carbon.identity.application.authenticator.oidc.version>5.12.19</carbon.identity.application.authenticator.oidc.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <oltu.version>1.0.0.wso2v3</oltu.version>
+        <testng.version>6.9.10</testng.version>
+        <jacoco.version>0.8.12</jacoco.version>
+        <mockito.version>4.11.0</mockito.version>
+        <mockito-testng.version>0.5.2</mockito-testng.version>
         <carbon.identity.framework.version>7.8.24</carbon.identity.framework.version>
         <apache.felix.scr.ds.annotations.version>1.2.4</apache.felix.scr.ds.annotations.version>
         <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
