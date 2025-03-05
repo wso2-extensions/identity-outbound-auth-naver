@@ -317,7 +317,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
             Boolean basicAuthEnabled = Boolean.parseBoolean((String)authenticatorProperties.get(IS_BASIC_AUTH_ENABLED));
             String tokenEP = this.getTokenEndpoint(authenticatorProperties);
             String token;
-            if (isTrustedTokenIssuer(context)) {
+            if (isNativeSDKBasedFederationCall(request) && isTrustedTokenIssuer(context)) {
                 String idToken = request.getParameter(ID_TOKEN_PARAM);
                 token = request.getParameter(NaverCustomAuthenticatorConstants.ACCESS_TOKEN_PARAM);
                 validateJWTToken(context, idToken);
