@@ -116,9 +116,6 @@ public class NaverCustomAuthenticatorTest {
         assertTrue(requiredParams.contains(NaverCustomAuthenticatorConstants.OAUTH2_PARAM_STATE));
     }
 
-    /**
-     * mock the private method isTrustedTokenIssuer.
-     */
     private boolean invokeIsTrustedTokenIssuer(AuthenticationContext context) throws Exception {
         Method method = NaverCustomAuthenticator.class.getDeclaredMethod("isTrustedTokenIssuer", AuthenticationContext.class);
         method.setAccessible(true);
