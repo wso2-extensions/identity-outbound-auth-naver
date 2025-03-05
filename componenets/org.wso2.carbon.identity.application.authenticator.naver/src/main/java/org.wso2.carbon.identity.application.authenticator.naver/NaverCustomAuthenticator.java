@@ -448,12 +448,12 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
 
         IdentityProvider identityProvider;
         identityProvider = IdentityProviderManager.getInstance().getIdPByMetadataProperty(
-                IdentityApplicationConstants.IDP_ISSUER_NAME, jwtIssuer, tenantDomain, false);
+                            IdentityApplicationConstants.IDP_ISSUER_NAME,
+                            jwtIssuer, tenantDomain, false);
 
         if (identityProvider == null) {
             identityProvider = IdentityProviderManager.getInstance().getIdPByName(jwtIssuer, tenantDomain);
         }
-
         return identityProvider;
     }
 }
