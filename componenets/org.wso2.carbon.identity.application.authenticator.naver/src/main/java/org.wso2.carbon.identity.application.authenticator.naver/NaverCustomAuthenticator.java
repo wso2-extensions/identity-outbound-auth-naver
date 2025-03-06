@@ -118,14 +118,12 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
     @Override
     protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Authentication request has initialized.");
-        }
+        logger.debug("Authentication request has initialized.");
 
         try {
             Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
-            String clientId = (String)authenticatorProperties.get(CLIENT_ID);
-            String callbackUrl = (String)authenticatorProperties.get(CALLBACK_URL);
+            String clientId = authenticatorProperties.get(CLIENT_ID);
+            String callbackUrl = authenticatorProperties.get(CALLBACK_URL);
             String authorizationEP = this.getAuthorizationServerEndpoint(authenticatorProperties);
             String state = context.getContextIdentifier() + "," + NaverCustomAuthenticatorConstants.OAUTH2;
             OAuthClientRequest authzRequest = OAuthClientRequest.authorizationLocation(authorizationEP)
@@ -306,9 +304,7 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
     @Override
     protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Processing the authentication response.");
-        }
+        logger.debug("Processing the authentication response.");
 
         try {
             Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
