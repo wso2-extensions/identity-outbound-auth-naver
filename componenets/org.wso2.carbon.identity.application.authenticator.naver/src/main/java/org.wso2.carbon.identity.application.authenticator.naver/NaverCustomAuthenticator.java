@@ -308,9 +308,9 @@ public class NaverCustomAuthenticator extends Oauth2GenericAuthenticator {
 
         try {
             Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
-            String clientId = (String)authenticatorProperties.get(CLIENT_ID);
-            String clientSecret = (String)authenticatorProperties.get(CLIENT_SECRET);
-            Boolean basicAuthEnabled = Boolean.parseBoolean((String)authenticatorProperties.get(IS_BASIC_AUTH_ENABLED));
+            String clientId = authenticatorProperties.get(CLIENT_ID);
+            String clientSecret = authenticatorProperties.get(CLIENT_SECRET);
+            Boolean basicAuthEnabled = Boolean.parseBoolean(authenticatorProperties.get(IS_BASIC_AUTH_ENABLED));
             String tokenEP = this.getTokenEndpoint(authenticatorProperties);
             String token;
             if (isNativeSDKBasedFederationCall(request) && isTrustedTokenIssuer(context)) {
